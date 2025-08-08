@@ -1,19 +1,19 @@
--- Freeze Trade UI Script by @thebestexploiterr
+-- Trade Hub UI Script by @thebestexploiterr
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local gui = Instance.new("ScreenGui")
-gui.Name = "FreezeTradeUI"
+gui.Name = "TradeHubUI"
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = player:WaitForChild("PlayerGui")
 
 -- Main Frame
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 250, 0, 200)
-mainFrame.Position = UDim2.new(0.5, -125, 0.5, -100)
+mainFrame.Size = UDim2.new(0, 250, 0, 220)
+mainFrame.Position = UDim2.new(0.5, -125, 0.5, -110)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 mainFrame.BorderSizePixel = 0
@@ -26,34 +26,48 @@ corner.Parent = mainFrame
 -- Title
 local title = Instance.new("TextLabel")
 title.Name = "Title"
-title.Text = "VIRAL HUB SCRIPTS"
+title.Text = "TRADE HUB"
 title.Size = UDim2.new(1, -20, 0, 30)
 title.Position = UDim2.new(0, 10, 0, 10)
 title.BackgroundTransparency = 1
 title.TextColor3 = Color3.fromRGB(100, 150, 255)
 title.Font = Enum.Font.GothamBold
-title.TextSize = 16
+title.TextSize = 18
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = mainFrame
 
--- Username
-local username = Instance.new("TextLabel")
-username.Name = "Username"
-username.Text = "howlesgoe"
-username.Size = UDim2.new(1, -20, 0, 20)
-username.Position = UDim2.new(0, 10, 0, 40)
-username.BackgroundTransparency = 1
-username.TextColor3 = Color3.fromRGB(200, 200, 255)
-username.Font = Enum.Font.Gotham
-username.TextSize = 14
-username.TextXAlignment = Enum.TextXAlignment.Left
-username.Parent = mainFrame
+-- Username Input
+local inputFrame = Instance.new("Frame")
+inputFrame.Name = "InputFrame"
+inputFrame.Size = UDim2.new(1, -20, 0, 30)
+inputFrame.Position = UDim2.new(0, 10, 0, 45)
+inputFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+inputFrame.BorderSizePixel = 0
+inputFrame.Parent = mainFrame
+
+local inputCorner = Instance.new("UICorner")
+inputCorner.CornerRadius = UDim.new(0, 6)
+inputCorner.Parent = inputFrame
+
+local usernameInput = Instance.new("TextBox")
+usernameInput.Name = "UsernameInput"
+usernameInput.PlaceholderText = "Enter username"
+usernameInput.Size = UDim2.new(1, -10, 1, 0)
+usernameInput.Position = UDim2.new(0, 5, 0, 0)
+usernameInput.BackgroundTransparency = 1
+usernameInput.TextColor3 = Color3.fromRGB(200, 200, 255)
+usernameInput.Font = Enum.Font.Gotham
+usernameInput.TextSize = 14
+usernameInput.TextXAlignment = Enum.TextXAlignment.Left
+usernameInput.Text = ""
+usernameInput.ClearTextOnFocus = false
+usernameInput.Parent = inputFrame
 
 -- Toggles Container
 local togglesFrame = Instance.new("Frame")
 togglesFrame.Name = "TogglesFrame"
 togglesFrame.Size = UDim2.new(1, -20, 0, 80)
-togglesFrame.Position = UDim2.new(0, 10, 0, 70)
+togglesFrame.Position = UDim2.new(0, 10, 0, 85)
 togglesFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
 togglesFrame.BorderSizePixel = 0
 togglesFrame.Parent = mainFrame
@@ -86,6 +100,7 @@ freezeToggle.Size = UDim2.new(0, 40, 0, 20)
 freezeToggle.Position = UDim2.new(1, -40, 0.5, -10)
 freezeToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
 freezeToggle.AutoButtonColor = false
+freezeToggle.Text = ""
 freezeToggle.Parent = freezeFrame
 
 local freezeCorner = Instance.new("UICorner")
@@ -129,6 +144,7 @@ acceptToggle.Size = UDim2.new(0, 40, 0, 20)
 acceptToggle.Position = UDim2.new(1, -40, 0.5, -10)
 acceptToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
 acceptToggle.AutoButtonColor = false
+acceptToggle.Text = ""
 acceptToggle.Parent = acceptFrame
 
 local acceptCorner = Instance.new("UICorner")
@@ -152,7 +168,7 @@ local status = Instance.new("TextLabel")
 status.Name = "Status"
 status.Text = ""
 status.Size = UDim2.new(1, -20, 0, 20)
-status.Position = UDim2.new(0, 10, 0, 160)
+status.Position = UDim2.new(0, 10, 0, 175)
 status.BackgroundTransparency = 1
 status.TextColor3 = Color3.fromRGB(100, 255, 100)
 status.Font = Enum.Font.Gotham
@@ -191,10 +207,11 @@ freezeToggle.MouseButton1Click:Connect(function()
     freezeEnabled = not freezeEnabled
     toggleSwitch(freezeToggle, freezeCircle, freezeEnabled)
     
+    local username = usernameInput.Text ~= "" and usernameInput.Text or "target"
     if freezeEnabled then
-        status.Text = "Successfully frozen trade for " .. username.Text
+        status.Text = "Successfully frozen trade for " .. username
     else
-        status.Text = "Trade unfrozen for " .. username.Text
+        status.Text = "Trade unfrozen for " .. username
     end
 end)
 
