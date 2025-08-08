@@ -1,196 +1,172 @@
--- Удаление старого UI
-pcall(function()
-    game.CoreGui:FindFirstChild("FreezeTradeUI"):Destroy()
-end)
-
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local StarterGui = game:GetService("StarterGui")
 local player = Players.LocalPlayer
 
-local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "FreezeTradeUI"
-gui.ResetOnSpawn = false
+-- UI
+local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+ScreenGui.Name = "TradeHubUI"
+ScreenGui.ResetOnSpawn = false
 
--- Основной UI
-local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0, 340, 0, 270)
-main.Position = UDim2.new(0.5, -170, 0.5, -135)
-main.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
-main.BackgroundTransparency = 0.2
-main.BorderSizePixel = 0
-main.Active = true
-main.Draggable = true
-main.ClipsDescendants = true
+-- Draggable frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 220)
+MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+MainFrame.BackgroundTransparency = 0.3
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+MainFrame.Active = true
+MainFrame.Draggable = true
 
--- Кружочек для перетаскивания
-local dragCircle = Instance.new("Frame", main)
-dragCircle.Size = UDim2.new(0, 30, 0, 30)
-dragCircle.Position = UDim2.new(0, 10, 0, 10)
-dragCircle.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-dragCircle.BackgroundTransparency = 0.2
-dragCircle.BorderSizePixel = 0
-dragCircle.ZIndex = 2
-dragCircle.Name = "DragHandle"
+-- Drag Circle
+local DragCircle = Instance.new("ImageLabel", MainFrame)
+DragCircle.Size = UDim2.new(0, 20, 0, 20)
+DragCircle.Position = UDim2.new(0, 5, 0, 5)
+DragCircle.BackgroundTransparency = 1
+DragCircle.Image = "rbxassetid://11372950109"
 
--- Крестик и кнопка свернуть
-local close = Instance.new("TextButton", main)
-close.Size = UDim2.new(0, 30, 0, 30)
-close.Position = UDim2.new(1, -35, 0, 5)
-close.Text = "X"
-close.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-close.TextColor3 = Color3.fromRGB(255, 100, 100)
-close.Font = Enum.Font.GothamBold
-close.TextSize = 16
-close.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
+-- Gradient Title
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, -40, 0, 30)
+Title.Position = UDim2.new(0, 30, 0, 0)
+Title.Text = "Trade Hub"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 22
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.BackgroundTransparency = 1
 
-local minimize = Instance.new("TextButton", main)
-minimize.Size = UDim2.new(0, 30, 0, 30)
-minimize.Position = UDim2.new(1, -70, 0, 5)
-minimize.Text = "-"
-minimize.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-minimize.TextColor3 = Color3.fromRGB(255, 255, 100)
-minimize.Font = Enum.Font.GothamBold
-minimize.TextSize = 16
-
-local minimized = false
-minimize.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    for _, child in ipairs(main:GetChildren()) do
-        if child:IsA("GuiObject") and child ~= close and child ~= minimize and child ~= dragCircle then
-            child.Visible = not minimized
-        end
-    end
-end)
-
--- Заголовок
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1, 0, 0, 40)
-title.BackgroundTransparency = 1
-title.Text = "Trade Hub"
-title.Font = Enum.Font.GothamBold
-title.TextSize = 20
-title.TextColor3 = Color3.fromRGB(0, 170, 255)
-
--- Функция переключателя
-local function createToggle(parent, text, posY)
-    local container = Instance.new("Frame", parent)
-    container.Size = UDim2.new(1, -40, 0, 40)
-    container.Position = UDim2.new(0, 20, 0, posY)
-    container.BackgroundTransparency = 1
-    container.Visible = false -- будет включено после bypass
-
-    local label = Instance.new("TextLabel", container)
-    label.Size = UDim2.new(0.6, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 18
-    label.TextColor3 = Color3.fromRGB(200, 200, 200)
-    label.TextXAlignment = Enum.TextXAlignment.Left
-
-    local toggle = Instance.new("TextButton", container)
-    toggle.Size = UDim2.new(0, 50, 0, 25)
-    toggle.Position = UDim2.new(1, -60, 0.5, -12)
-    toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    toggle.BorderSizePixel = 0
-    toggle.Text = ""
-    toggle.AutoButtonColor = false
-
-    local knob = Instance.new("Frame", toggle)
-    knob.Size = UDim2.new(0, 20, 0, 20)
-    knob.Position = UDim2.new(0, 3, 0.5, -10)
-    knob.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
-    knob.BorderSizePixel = 0
-
-    local enabled = false
-
-    toggle.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        if enabled then
-            toggle.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-            knob:TweenPosition(UDim2.new(1, -23, 0.5, -10), "Out", "Sine", 0.2, true)
-        else
-            toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-            knob:TweenPosition(UDim2.new(0, 3, 0.5, -10), "Out", "Sine", 0.2, true)
-        end
-    end)
-
-    return container
-end
-
--- Кнопка Bypass Anti-Cheat
-local bypassBtn = Instance.new("TextButton", main)
-bypassBtn.Size = UDim2.new(0.8, 0, 0, 30)
-bypassBtn.Position = UDim2.new(0.1, 0, 0, 50)
-bypassBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
-bypassBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-bypassBtn.Font = Enum.Font.GothamBold
-bypassBtn.TextSize = 16
-bypassBtn.Text = "Bypass Anti-Cheat"
-
--- Прогрессбар
-local bar = Instance.new("Frame", main)
-bar.Size = UDim2.new(0.8, 0, 0, 6)
-bar.Position = UDim2.new(0.1, 0, 0, 85)
-bar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-bar.Visible = false
-
-local gradient = Instance.new("UIGradient", bar)
-gradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(0, 170, 255)),
-    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(0, 255, 200))
+local UIGradient = Instance.new("UIGradient", Title)
+UIGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 200, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 60, 255))
 }
 
-local fill = Instance.new("Frame", bar)
-fill.Size = UDim2.new(0, 0, 1, 0)
-fill.BackgroundTransparency = 1
-fill.BorderSizePixel = 0
-
-local grad2 = Instance.new("UIGradient", fill)
-grad2.Color = gradient.Color
-
-bar:AddChild(fill)
-
--- Переключатели (будут активированы позже)
-local freezeToggle = createToggle(main, "Freeze Trade ❄", 120)
-local forceToggle = createToggle(main, "Force Accept ✅", 170)
-
--- Действие Bypass
-bypassBtn.MouseButton1Click:Connect(function()
-    bypassBtn.Text = "Loading..."
-    bypassBtn.AutoButtonColor = false
-    bar.Visible = true
-    fill.BackgroundTransparency = 0
-
-    local duration = 10
-    for i = 0, 100 do
-        fill.Size = UDim2.new(i / 100, 0, 1, 0)
-        wait(duration / 100)
-    end
-
-    -- Обратная связь
-    bypassBtn.Text = "Bypass Completed"
-    bypassBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
-
-    StarterGui:SetCore("SendNotification", {
-        Title = "Roblox";
-        Text = "Bypass Active 😎🔥";
-        Duration = 5;
-    })
-
-    freezeToggle.Visible = true
-    forceToggle.Visible = true
+-- Gradient animation
+task.spawn(function()
+	while true do
+		UIGradient.Rotation = UIGradient.Rotation + 1
+		task.wait(0.01)
+	end
 end)
 
--- Подпись
-local credit = Instance.new("TextLabel", main)
-credit.Size = UDim2.new(1, 0, 0, 20)
-credit.Position = UDim2.new(0, 0, 1, -20)
-credit.BackgroundTransparency = 1
-credit.Text = "Freeze Trade By @thebestexploiterr"
-credit.Font = Enum.Font.Gotham
-credit.TextSize = 14
-credit.TextColor3 = Color3.fromRGB(120, 180, 255)
-credit.TextTransparency = 0.2
+-- Close Button
+local CloseBtn = Instance.new("TextButton", MainFrame)
+CloseBtn.Size = UDim2.new(0, 20, 0, 20)
+CloseBtn.Position = UDim2.new(1, -25, 0, 5)
+CloseBtn.Text = "✖"
+CloseBtn.Font = Enum.Font.Gotham
+CloseBtn.TextSize = 14
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+
+-- Minimize Button
+local MinimizeBtn = Instance.new("TextButton", MainFrame)
+MinimizeBtn.Size = UDim2.new(0, 20, 0, 20)
+MinimizeBtn.Position = UDim2.new(1, -50, 0, 5)
+MinimizeBtn.Text = "_"
+MinimizeBtn.Font = Enum.Font.Gotham
+MinimizeBtn.TextSize = 18
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.BackgroundTransparency = 1
+
+local minimized = false
+
+MinimizeBtn.MouseButton1Click:Connect(function()
+	if minimized then
+		MainFrame:TweenSizeAndPosition(
+			UDim2.new(0, 300, 0, 220),
+			UDim2.new(0.3, 0, 0.3, 0),
+			Enum.EasingDirection.Out,
+			Enum.EasingStyle.Quad,
+			0.4
+		)
+	else
+		local corner = UDim2.new(0.9, -100, 1, -40)
+		MainFrame:TweenSizeAndPosition(
+			UDim2.new(0, 120, 0, 30),
+			corner,
+			Enum.EasingDirection.Out,
+			Enum.EasingStyle.Quad,
+			0.4
+		)
+	end
+	minimized = not minimized
+end)
+
+-- Enable buttons after bypass
+local bypassed = false
+
+-- Bypass Button
+local BypassBtn = Instance.new("TextButton", MainFrame)
+BypassBtn.Size = UDim2.new(0.8, 0, 0, 40)
+BypassBtn.Position = UDim2.new(0.1, 0, 0, 40)
+BypassBtn.Text = "Bypass Anti-Cheat"
+BypassBtn.Font = Enum.Font.GothamBold
+BypassBtn.TextSize = 16
+BypassBtn.TextColor3 = Color3.new(1, 1, 1)
+BypassBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+BypassBtn.BorderSizePixel = 0
+BypassBtn.AutoButtonColor = true
+
+-- Progress Bar
+local LoadingBar = Instance.new("Frame", BypassBtn)
+LoadingBar.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+LoadingBar.Size = UDim2.new(0, 0, 1, 0)
+LoadingBar.Position = UDim2.new(0, 0, 0, 0)
+LoadingBar.BorderSizePixel = 0
+
+-- Freeze Trade Button
+local FreezeBtn = Instance.new("TextButton", MainFrame)
+FreezeBtn.Size = UDim2.new(0.8, 0, 0, 35)
+FreezeBtn.Position = UDim2.new(0.1, 0, 0, 130)
+FreezeBtn.Text = "Freeze Trade"
+FreezeBtn.Font = Enum.Font.Gotham
+FreezeBtn.TextSize = 16
+FreezeBtn.TextColor3 = Color3.new(1, 1, 1)
+FreezeBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+FreezeBtn.BorderSizePixel = 0
+FreezeBtn.AutoButtonColor = true
+FreezeBtn.Active = false
+
+-- Auto Accept Button
+local AcceptBtn = Instance.new("TextButton", MainFrame)
+AcceptBtn.Size = UDim2.new(0.8, 0, 0, 35)
+AcceptBtn.Position = UDim2.new(0.1, 0, 0, 175)
+AcceptBtn.Text = "Force Accept"
+AcceptBtn.Font = Enum.Font.Gotham
+AcceptBtn.TextSize = 16
+AcceptBtn.TextColor3 = Color3.new(1, 1, 1)
+AcceptBtn.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+AcceptBtn.BorderSizePixel = 0
+AcceptBtn.AutoButtonColor = true
+AcceptBtn.Active = false
+
+-- Bypass logic
+BypassBtn.MouseButton1Click:Connect(function()
+	if bypassed then return end
+	bypassed = true
+
+	local duration = 10
+	local startTime = tick()
+	local conn
+	conn = game:GetService("RunService").RenderStepped:Connect(function()
+		local elapsed = tick() - startTime
+		local percent = math.clamp(elapsed / duration, 0, 1)
+		LoadingBar.Size = UDim2.new(percent, 0, 1, 0)
+		if percent == 1 then
+			conn:Disconnect()
+			BypassBtn.Text = "Bypass Completed"
+			StarterGui:SetCore("SendNotification", {
+				Title = "Bypass Active",
+				Text = "✔ Anti-Cheat disabled 🎉",
+				Duration = 4
+			})
+			FreezeBtn.Active = true
+			AcceptBtn.Active = true
+		end
+	end)
+end)
