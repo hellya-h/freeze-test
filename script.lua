@@ -1,4 +1,4 @@
--- Удаление предыдущего GUI
+-- Удаление старого UI
 pcall(function()
     game.CoreGui:FindFirstChild("FreezeTradeUI"):Destroy()
 end)
@@ -7,32 +7,61 @@ local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 local player = Players.LocalPlayer
 
--- UI контейнер
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "FreezeTradeUI"
-ScreenGui.ResetOnSpawn = false
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "FreezeTradeUI"
+gui.ResetOnSpawn = false
 
--- Основная рамка
-local main = Instance.new("Frame", ScreenGui)
-main.Size = UDim2.new(0, 340, 0, 240)
-main.Position = UDim2.new(0.5, -170, 0.5, -120)
+-- Основной UI
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 340, 0, 270)
+main.Position = UDim2.new(0.5, -170, 0.5, -135)
 main.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+main.BackgroundTransparency = 0.2
 main.BorderSizePixel = 0
 main.Active = true
-main.Draggable = true -- Перетаскивание
+main.Draggable = true
 main.ClipsDescendants = true
 
--- Закрывающий крестик
+-- Кружочек для перетаскивания
+local dragCircle = Instance.new("Frame", main)
+dragCircle.Size = UDim2.new(0, 30, 0, 30)
+dragCircle.Position = UDim2.new(0, 10, 0, 10)
+dragCircle.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+dragCircle.BackgroundTransparency = 0.2
+dragCircle.BorderSizePixel = 0
+dragCircle.ZIndex = 2
+dragCircle.Name = "DragHandle"
+
+-- Крестик и кнопка свернуть
 local close = Instance.new("TextButton", main)
-close.Text = "X"
 close.Size = UDim2.new(0, 30, 0, 30)
 close.Position = UDim2.new(1, -35, 0, 5)
+close.Text = "X"
 close.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 close.TextColor3 = Color3.fromRGB(255, 100, 100)
 close.Font = Enum.Font.GothamBold
 close.TextSize = 16
 close.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
+    gui:Destroy()
+end)
+
+local minimize = Instance.new("TextButton", main)
+minimize.Size = UDim2.new(0, 30, 0, 30)
+minimize.Position = UDim2.new(1, -70, 0, 5)
+minimize.Text = "-"
+minimize.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+minimize.TextColor3 = Color3.fromRGB(255, 255, 100)
+minimize.Font = Enum.Font.GothamBold
+minimize.TextSize = 16
+
+local minimized = false
+minimize.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    for _, child in ipairs(main:GetChildren()) do
+        if child:IsA("GuiObject") and child ~= close and child ~= minimize and child ~= dragCircle then
+            child.Visible = not minimized
+        end
+    end
 end)
 
 -- Заголовок
@@ -44,12 +73,13 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 title.TextColor3 = Color3.fromRGB(0, 170, 255)
 
--- Функция создания iOS-переключателя
+-- Функция переключателя
 local function createToggle(parent, text, posY)
     local container = Instance.new("Frame", parent)
     container.Size = UDim2.new(1, -40, 0, 40)
     container.Position = UDim2.new(0, 20, 0, posY)
     container.BackgroundTransparency = 1
+    container.Visible = false -- будет включено после bypass
 
     local label = Instance.new("TextLabel", container)
     label.Size = UDim2.new(0.6, 0, 1, 0)
@@ -87,19 +117,13 @@ local function createToggle(parent, text, posY)
         end
     end)
 
-    return {
-        IsOn = function() return enabled end
-    }
+    return container
 end
-
--- Переключатели
-local freezeToggle = createToggle(main, "Freeze Trade ❄", 50)
-local forceToggle = createToggle(main, "Force Accept ✅", 100)
 
 -- Кнопка Bypass Anti-Cheat
 local bypassBtn = Instance.new("TextButton", main)
 bypassBtn.Size = UDim2.new(0.8, 0, 0, 30)
-bypassBtn.Position = UDim2.new(0.1, 0, 0, 150)
+bypassBtn.Position = UDim2.new(0.1, 0, 0, 50)
 bypassBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
 bypassBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 bypassBtn.Font = Enum.Font.GothamBold
@@ -109,32 +133,55 @@ bypassBtn.Text = "Bypass Anti-Cheat"
 -- Прогрессбар
 local bar = Instance.new("Frame", main)
 bar.Size = UDim2.new(0.8, 0, 0, 6)
-bar.Position = UDim2.new(0.1, 0, 0, 185)
+bar.Position = UDim2.new(0.1, 0, 0, 85)
 bar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 bar.Visible = false
 
+local gradient = Instance.new("UIGradient", bar)
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(0, 170, 255)),
+    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(0, 255, 200))
+}
+
 local fill = Instance.new("Frame", bar)
 fill.Size = UDim2.new(0, 0, 1, 0)
-fill.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+fill.BackgroundTransparency = 1
 fill.BorderSizePixel = 0
 
-bypassBtn.MouseButton1Click:Connect(function()
-    bar.Visible = true
-    fill.Size = UDim2.new(0, 0, 1, 0)
+local grad2 = Instance.new("UIGradient", fill)
+grad2.Color = gradient.Color
 
-    -- Анимация прогресса
+bar:AddChild(fill)
+
+-- Переключатели (будут активированы позже)
+local freezeToggle = createToggle(main, "Freeze Trade ❄", 120)
+local forceToggle = createToggle(main, "Force Accept ✅", 170)
+
+-- Действие Bypass
+bypassBtn.MouseButton1Click:Connect(function()
+    bypassBtn.Text = "Loading..."
+    bypassBtn.AutoButtonColor = false
+    bar.Visible = true
+    fill.BackgroundTransparency = 0
+
     local duration = 10
     for i = 0, 100 do
         fill.Size = UDim2.new(i / 100, 0, 1, 0)
         wait(duration / 100)
     end
 
-    -- Уведомление от Roblox
+    -- Обратная связь
+    bypassBtn.Text = "Bypass Completed"
+    bypassBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+
     StarterGui:SetCore("SendNotification", {
         Title = "Roblox";
         Text = "Bypass Active 😎🔥";
         Duration = 5;
     })
+
+    freezeToggle.Visible = true
+    forceToggle.Visible = true
 end)
 
 -- Подпись
